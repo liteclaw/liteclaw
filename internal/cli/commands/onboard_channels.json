@@ -1,0 +1,68 @@
+[
+  {
+    "key": "telegram",
+    "label": "Telegram",
+    "description": "Bot API",
+    "fields": [
+      { "key": "botToken", "label": "Telegram bot token", "type": "string", "required": true, "secret": true }
+    ]
+  },
+  {
+    "key": "discord",
+    "label": "Discord",
+    "description": "Bot token",
+    "fields": [
+      { "key": "token", "label": "Discord bot token", "type": "string", "required": true, "secret": true }
+    ]
+  },
+  {
+    "key": "imessage",
+    "label": "iMessage",
+    "description": "macOS only",
+    "fields": [
+      { "key": "dbPath", "label": "iMessage database path (optional)", "type": "string", "required": false }
+    ]
+  },
+  {
+    "key": "qq",
+    "label": "QQ",
+    "description": "Bot API",
+    "fields": [
+      { "key": "appId", "label": "QQ appId", "type": "int", "required": true },
+      { "key": "appSecret", "label": "QQ appSecret", "type": "string", "required": true, "secret": true },
+      { "key": "sandbox", "label": "QQ sandbox mode", "type": "bool", "required": false, "default": "true" }
+    ]
+  },
+  {
+    "key": "feishu",
+    "label": "Feishu",
+    "description": "Bot API",
+    "fields": [
+      { "key": "appId", "label": "Feishu appId", "type": "string", "required": true },
+      { "key": "appSecret", "label": "Feishu appSecret", "type": "string", "required": true, "secret": true },
+      { "key": "encryptKey", "label": "Feishu encryptKey (optional)", "type": "string", "required": false },
+      { "key": "verificationToken", "label": "Feishu verificationToken (optional)", "type": "string", "required": false }
+    ]
+  },
+  {
+    "key": "dingtalk",
+    "label": "DingTalk",
+    "description": "Bot API",
+    "fields": [
+      { "key": "appKey", "label": "DingTalk appKey", "type": "string", "required": true },
+      { "key": "appSecret", "label": "DingTalk appSecret", "type": "string", "required": true, "secret": true }
+    ]
+  },
+  {
+    "key": "wecom",
+    "label": "WeCom",
+    "description": "Callback + bot",
+    "fields": [
+      { "key": "token", "label": "WeCom token", "type": "string", "required": true, "secret": true },
+      { "key": "encodingAesKey", "label": "WeCom encodingAesKey", "type": "string", "required": true, "secret": true },
+      { "key": "port", "label": "WeCom callback port", "type": "int", "required": true, "default": "10456" },
+      { "key": "botId", "label": "WeCom botId", "type": "string", "required": true },
+      { "key": "showThinking", "label": "Show thinking in WeCom responses", "type": "bool", "required": false, "default": "false" }
+    ]
+  }
+]

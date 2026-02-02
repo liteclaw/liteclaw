@@ -1,0 +1,42 @@
+.DS_Store
+*.log
+*.tmp
+.tmp-onboard.json
+.tmp-selfcheck*
+/dist/
+/build/
+ui/node_modules/
+ui/dist/
+ui/.vite/
+*.exe
+*.dll
+*.so
+*.dylib
+RELEASE_CHECKLIST.md
+
+# Test coverage
+*.coverprofile
+coverage.out
+coverage.html
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependencies (if vendoring)
+/vendor/
+
+# Debug
+__debug_bin
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+/liteclaw

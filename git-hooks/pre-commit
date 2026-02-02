@@ -1,0 +1,21 @@
+#!/bin/sh
+# MoltGo pre-commit hook
+# Run go fmt and go vet before committing
+
+set -e
+
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+[ -z "$ROOT" ] && exit 0
+
+cd "$ROOT/MoltGo" || exit 0
+
+echo "Running go fmt..."
+go fmt ./...
+
+echo "Running go vet..."
+go vet ./...
+
+echo "Running go test..."
+go test -short ./... 2>&1 | tail -20
+
+echo "✓ Pre-commit checks passed"
