@@ -2,10 +2,12 @@ package commands
 
 import (
 	"bufio"
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/xen0n/go-workwx"
 	"golang.org/x/term"
 
 	"github.com/liteclaw/liteclaw/internal/config"
@@ -244,6 +247,17 @@ func selectOnboardChannels(reader *bufio.Reader, out io.Writer, channels []onboa
 		if !selected[i] {
 			continue
 		}
+
+		// Special handling for WeCom: start server after port, ask botId last
+		if ch.Key == "wecom" {
+			fieldValues, err := collectWeComFields(reader, out, ch)
+			if err != nil {
+				return nil, err
+			}
+			values[ch.Key] = fieldValues
+			continue
+		}
+
 		fieldValues := map[string]string{}
 		for _, field := range ch.Fields {
 			val := ""
@@ -265,6 +279,138 @@ func selectOnboardChannels(reader *bufio.Reader, out io.Writer, channels []onboa
 	}
 
 	return values, nil
+}
+
+// collectWeComFields handles WeCom onboarding with special flow:
+// 1. Collect token, encodingAesKey, port
+// 2. Start temporary callback server
+// 3. User creates bot on WeCom platform (triggers URL verification)
+// 4. Collect botId
+// 5. Stop server
+func collectWeComFields(reader *bufio.Reader, out io.Writer, ch onboardChannelEntry) (map[string]string, error) {
+	fieldValues := map[string]string{}
+
+	// Step 1: Collect token
+	token := promptSecret(reader, out, "WeCom token", false)
+	if token == "" {
+		return nil, fmt.Errorf("WeCom token is required")
+	}
+	fieldValues["token"] = token
+
+	// Step 2: Collect encodingAesKey
+	encodingAesKey := promptSecret(reader, out, "WeCom encodingAesKey", false)
+	if encodingAesKey == "" {
+		return nil, fmt.Errorf("WeCom encodingAesKey is required")
+	}
+	fieldValues["encodingAesKey"] = encodingAesKey
+
+	// Step 3: Collect port
+	portStr := prompt(reader, out, "WeCom callback port", "10456")
+	port := 10456
+	if portStr != "" {
+		p, err := strconv.Atoi(portStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid port: %s", portStr)
+		}
+		port = p
+	}
+	fieldValues["port"] = strconv.Itoa(port)
+
+	// Step 4: Start temporary WeCom callback server
+	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "🚀 Starting WeCom callback server...")
+
+	server, err := startWeComCallbackServer(token, encodingAesKey, port, out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start WeCom callback server: %w", err)
+	}
+
+	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "✅ WeCom callback server is running on port", port)
+	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "📋 Next steps:")
+	fmt.Fprintln(out, "   1. Go to WeCom admin console (企业微信管理后台)")
+	fmt.Fprintln(out, "   2. Create a new Intelligent Bot (智能机器人)")
+	fmt.Fprintln(out, "   3. Set callback URL to: http://YOUR_PUBLIC_IP:"+strconv.Itoa(port)+"/wecom/callback")
+	fmt.Fprintln(out, "   4. WeCom will verify the URL by calling our server")
+	fmt.Fprintln(out, "   5. After verification, you'll get a Bot ID")
+	fmt.Fprintln(out, "")
+
+	// Step 5: Collect botId (after user creates bot on WeCom platform)
+	botId := prompt(reader, out, "WeCom botId (from WeCom after URL verification)", "")
+	if botId == "" {
+		// Stop server before returning error
+		stopWeComCallbackServer(server)
+		return nil, fmt.Errorf("WeCom botId is required")
+	}
+	fieldValues["botId"] = botId
+
+	// Step 6: Collect showThinking (optional)
+	showThinking := promptYesNo(reader, out, "Show thinking in WeCom responses", false)
+	fieldValues["showThinking"] = strconv.FormatBool(showThinking)
+
+	// Step 7: Stop server
+	stopWeComCallbackServer(server)
+	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "✅ WeCom callback server stopped. Configuration complete.")
+
+	return fieldValues, nil
+}
+
+// wecomVerifyHandler implements workwx.RxMessageHandler for URL verification only
+type wecomVerifyHandler struct {
+	out io.Writer
+}
+
+func (h *wecomVerifyHandler) OnIncomingMessage(msg *workwx.RxMessage) error {
+	fmt.Fprintln(h.out, "📨 Received WeCom message (verification or test)")
+	return nil
+}
+
+func startWeComCallbackServer(token, encodingAesKey string, port int, out io.Writer) (*http.Server, error) {
+	handler := &wecomVerifyHandler{out: out}
+	wxHandler, err := workwx.NewHTTPHandler(token, encodingAesKey, handler)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create WeCom handler: %w", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/wecom/callback", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(out, "🔔 WeCom callback request: %s %s\n", r.Method, r.URL.String())
+		wxHandler.ServeHTTP(w, r)
+	})
+	// Also handle root path in case user configures it differently
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" || r.URL.Path == "/wecom/callback" {
+			fmt.Fprintf(out, "🔔 WeCom callback request: %s %s\n", r.Method, r.URL.String())
+			wxHandler.ServeHTTP(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
+	}
+
+	// Start server in background
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Fprintf(out, "⚠️  WeCom callback server error: %v\n", err)
+		}
+	}()
+
+	// Give server a moment to start
+	time.Sleep(100 * time.Millisecond)
+
+	return server, nil
+}
+
+func stopWeComCallbackServer(server *http.Server) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_ = server.Shutdown(ctx)
 }
 
 func applyChannelSelections(cfg *config.Config, values map[string]map[string]string) error {
