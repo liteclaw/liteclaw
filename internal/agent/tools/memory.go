@@ -137,7 +137,7 @@ func (t *MemorySearchTool) searchFile(filePath string, queryWords []string, agen
 	if err != nil {
 		return results
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	relPath, _ := filepath.Rel(agentDir, filePath)
 	if relPath == "" {
@@ -267,7 +267,7 @@ func (t *MemoryGetTool) Execute(ctx context.Context, params map[string]interface
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Read lines
 	scanner := bufio.NewScanner(file)

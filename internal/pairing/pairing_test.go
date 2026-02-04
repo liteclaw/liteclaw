@@ -13,7 +13,7 @@ import (
 
 func setupTest(t *testing.T) string {
 	tempDir := t.TempDir()
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
 	return tempDir
 }
 

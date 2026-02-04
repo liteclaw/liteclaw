@@ -150,7 +150,7 @@ func (sm *SessionManager) AddMessage(sessionKey string, role string, text string
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	_, err = f.Write(append(entryBytes, '\n'))
 	return err
@@ -167,7 +167,7 @@ func (sm *SessionManager) GetHistory(sessionKey string) ([]Message, error) {
 		}
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var messages []Message
 	scanner := bufio.NewScanner(file)

@@ -349,6 +349,14 @@ func (a *Agent) Run(ctx context.Context, sessionID string, input string) (<-chan
 	return events, nil
 }
 
+// HasSession checks if the session exists in memory and is populated.
+func (a *Agent) HasSession(id string) bool {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	s, ok := a.sessions[id]
+	return ok && len(s.Messages) > 0
+}
+
 func (a *Agent) getOrCreateSession(id string) *Session {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -365,6 +373,29 @@ func (a *Agent) getOrCreateSession(id string) *Session {
 	}
 	a.sessions[id] = session
 	return session
+}
+
+// LoadHistoryForSession loads persisted history into the agent's session.
+// This should be called before Run() to restore conversation context.
+func (a *Agent) LoadHistoryForSession(sessionID string, history []Message) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	session, ok := a.sessions[sessionID]
+	if !ok {
+		session = &Session{
+			ID:        sessionID,
+			AgentID:   a.ID,
+			Messages:  []Message{},
+			ToolCalls: []ToolCall{},
+		}
+		a.sessions[sessionID] = session
+	}
+
+	// Only load if session is empty (hasn't been used in this runtime yet)
+	if len(session.Messages) == 0 && len(history) > 0 {
+		session.Messages = history
+	}
 }
 
 func (a *Agent) convertMessages(msgs []Message) []llm.Message {

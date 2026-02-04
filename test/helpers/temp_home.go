@@ -41,13 +41,13 @@ func NewTempHome(t *testing.T) *TempHome {
 		th.restore[key] = os.Getenv(key)
 	}
 
-	os.Setenv("HOME", dir)
-	os.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, ".config"))
-	os.Setenv("XDG_DATA_HOME", filepath.Join(dir, ".local", "share"))
-	os.Setenv("XDG_STATE_HOME", filepath.Join(dir, ".local", "state"))
-	os.Setenv("XDG_CACHE_HOME", filepath.Join(dir, ".cache"))
-	os.Unsetenv("LITECLAW_CONFIG_PATH")
-	os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("HOME", dir)
+	_ = os.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, ".config"))
+	_ = os.Setenv("XDG_DATA_HOME", filepath.Join(dir, ".local", "share"))
+	_ = os.Setenv("XDG_STATE_HOME", filepath.Join(dir, ".local", "state"))
+	_ = os.Setenv("XDG_CACHE_HOME", filepath.Join(dir, ".cache"))
+	_ = os.Unsetenv("LITECLAW_CONFIG_PATH")
+	_ = os.Unsetenv("LITECLAW_STATE_DIR")
 
 	// Create standard directories
 	_ = os.MkdirAll(filepath.Join(dir, ".config", "liteclaw"), 0755)
@@ -60,9 +60,9 @@ func NewTempHome(t *testing.T) *TempHome {
 func (th *TempHome) Cleanup() {
 	for key, value := range th.restore {
 		if value == "" {
-			os.Unsetenv(key)
+			_ = os.Unsetenv(key)
 		} else {
-			os.Setenv(key, value)
+			_ = os.Setenv(key, value)
 		}
 	}
 }

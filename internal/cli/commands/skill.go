@@ -477,7 +477,7 @@ func runSkillInstall(slug, version, registry string, force bool) error {
 // copySkillDir copies a skill directory to the target location.
 func copySkillDir(src, dst string) error {
 	// Remove existing directory
-	os.RemoveAll(dst)
+	_ = os.RemoveAll(dst)
 
 	// Create destination directory
 	if err := os.MkdirAll(dst, 0755); err != nil {

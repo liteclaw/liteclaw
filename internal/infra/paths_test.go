@@ -12,10 +12,10 @@ import (
 func TestPathResolution(t *testing.T) {
 	tempDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tempDir)
-	os.Setenv("LITECLAW_STATE_DIR", filepath.Join(tempDir, ".liteclaw"))
-	defer os.Setenv("HOME", oldHome)
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("HOME", tempDir)
+	_ = os.Setenv("LITECLAW_STATE_DIR", filepath.Join(tempDir, ".liteclaw"))
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	// Since Paths is a global variable initialized at package load,
 	// we might need to call the resolution functions again to verify they work with our mock HOME.

@@ -72,7 +72,7 @@ func newPairingListCommand() *cobra.Command {
 			cmd.Printf("Pairing requests (%d)\n", len(requests))
 
 			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 3, ' ', 0)
-			fmt.Fprintln(w, "Code\tID\tMeta\tRequested")
+			_, _ = fmt.Fprintln(w, "Code\tID\tMeta\tRequested")
 
 			for _, r := range requests {
 				meta := ""
@@ -91,9 +91,9 @@ func newPairingListCommand() *cobra.Command {
 					}
 				}
 
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Code, r.ID, meta, timeStr)
+				_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", r.Code, r.ID, meta, timeStr)
 			}
-			w.Flush()
+			_ = w.Flush()
 
 			return nil
 		},

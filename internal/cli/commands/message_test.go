@@ -18,8 +18,8 @@ func TestMessageSendCommand_Errors(t *testing.T) {
 	initialConfig := `{"channels": {"telegram": {"enabled": false}}}`
 	require.NoError(t, os.WriteFile(configPath, []byte(initialConfig), 0644))
 
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
 
 	cmd := newMessageSendCommand()
 	b := bytes.NewBufferString("")

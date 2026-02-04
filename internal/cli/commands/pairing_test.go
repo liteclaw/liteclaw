@@ -15,8 +15,8 @@ import (
 
 func TestPairingCommand(t *testing.T) {
 	tempDir := t.TempDir()
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	channel := "telegram"
 	oauthDir := filepath.Join(tempDir, "oauth")

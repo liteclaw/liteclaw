@@ -4,7 +4,7 @@ package version
 // These variables are set at build time via ldflags.
 var (
 	// Version is the semantic version of LiteClaw.
-	Version = "0.1.0-dev"
+	Version = "0.1.1"
 
 	// Commit is the git commit hash.
 	Commit = "unknown"

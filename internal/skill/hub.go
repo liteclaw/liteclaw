@@ -61,7 +61,7 @@ func (h *HubClient) Search(ctx context.Context, query string, limit int) (*HubSe
 	if err != nil {
 		return nil, fmt.Errorf("failed to search: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -113,7 +113,7 @@ func (h *HubClient) GetSkillInfo(ctx context.Context, slug string) (*HubSkill, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to get skill info: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, fmt.Errorf("skill not found: %s", slug)
@@ -170,7 +170,7 @@ func (h *HubClient) Download(ctx context.Context, slug string, version string, t
 	if err != nil {
 		return fmt.Errorf("failed to download: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("skill or version not found: %s@%s", slug, version)
@@ -187,10 +187,10 @@ func (h *HubClient) Download(ctx context.Context, slug string, version string, t
 		return fmt.Errorf("failed to create temp file: %w", err)
 	}
 	tmpPath := tmpFile.Name()
-	defer os.Remove(tmpPath)
+	defer func() { _ = os.Remove(tmpPath) }()
 
 	_, err = io.Copy(tmpFile, resp.Body)
-	tmpFile.Close()
+	_ = tmpFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to download skill: %w", err)
 	}
@@ -210,10 +210,10 @@ func extractZip(zipPath, destDir string) error {
 	if err != nil {
 		return err
 	}
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 
 	// Remove existing directory
-	os.RemoveAll(destDir)
+	_ = os.RemoveAll(destDir)
 
 	// Create destination directory
 	if err := os.MkdirAll(destDir, 0755); err != nil {
@@ -262,13 +262,13 @@ func extractZip(zipPath, destDir string) error {
 
 		outFile, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
 		if err != nil {
-			rc.Close()
+			_ = rc.Close()
 			return err
 		}
 
 		_, err = io.Copy(outFile, rc)
-		outFile.Close()
-		rc.Close()
+		_ = outFile.Close()
+		_ = rc.Close()
 		if err != nil {
 			return err
 		}

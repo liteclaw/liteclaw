@@ -95,24 +95,24 @@ func isConfigured() bool {
 func showFirstRunMenu(cmd *cobra.Command) {
 	out := cmd.OutOrStdout()
 
-	fmt.Fprintln(out, "")
-	fmt.Fprintln(out, "🦞 Welcome to LiteClaw!")
-	fmt.Fprintln(out, "")
-	fmt.Fprintf(out, "   ~/.liteclaw folder not found. This appears to be your first run.\n")
-	fmt.Fprintln(out, "")
-	fmt.Fprintln(out, "   What would you like to do?")
-	fmt.Fprintln(out, "")
-	fmt.Fprintln(out, "   [1] 🚀 Start onboarding wizard (recommended for first-time setup)")
-	fmt.Fprintln(out, "   [2] 📖 View help information")
-	fmt.Fprintln(out, "   [3] 🚪 Exit")
-	fmt.Fprintln(out, "")
-	fmt.Fprint(out, "   Enter your choice (1/2/3): ")
+	_, _ = fmt.Fprintln(out, "")
+	_, _ = fmt.Fprintln(out, "🦞 Welcome to LiteClaw!")
+	_, _ = fmt.Fprintln(out, "")
+	_, _ = fmt.Fprintf(out, "   ~/.liteclaw folder not found. This appears to be your first run.\n")
+	_, _ = fmt.Fprintln(out, "")
+	_, _ = fmt.Fprintln(out, "   What would you like to do?")
+	_, _ = fmt.Fprintln(out, "")
+	_, _ = fmt.Fprintln(out, "   [1] 🚀 Start onboarding wizard (recommended for first-time setup)")
+	_, _ = fmt.Fprintln(out, "   [2] 📖 View help information")
+	_, _ = fmt.Fprintln(out, "   [3] 🚪 Exit")
+	_, _ = fmt.Fprintln(out, "")
+	_, _ = fmt.Fprint(out, "   Enter your choice (1/2/3): ")
 
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
 	choice := strings.TrimSpace(input)
 
-	fmt.Fprintln(out, "")
+	_, _ = fmt.Fprintln(out, "")
 
 	switch choice {
 	case "1":
@@ -124,16 +124,16 @@ func showFirstRunMenu(cmd *cobra.Command) {
 	case "2":
 		_ = cmd.Help()
 	case "3", "":
-		fmt.Fprintln(out, "   Goodbye! Run 'liteclaw onboard' when you're ready to set up.")
+		_, _ = fmt.Fprintln(out, "   Goodbye! Run 'liteclaw onboard' when you're ready to set up.")
 	default:
-		fmt.Fprintf(out, "   Invalid choice '%s'. Run 'liteclaw onboard' to get started.\n", choice)
+		_, _ = fmt.Fprintf(out, "   Invalid choice '%s'. Run 'liteclaw onboard' to get started.\n", choice)
 	}
 }
 
 func ensureFirstRunReady(cmd *cobra.Command) error {
 	if !isConfigured() {
-		fmt.Fprintln(cmd.ErrOrStderr(), "❌ LiteClaw is not configured yet.")
-		fmt.Fprintln(cmd.ErrOrStderr(), "   Run: liteclaw onboard")
+		_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "❌ LiteClaw is not configured yet.")
+		_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "   Run: liteclaw onboard")
 		return fmt.Errorf("not configured")
 	}
 

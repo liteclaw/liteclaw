@@ -38,10 +38,10 @@ func TestChannelsStatusCommand_Gateway(t *testing.T) {
 	initialConfig := `{"gateway": {"port": ` + parts[1] + `}}`
 	require.NoError(t, os.WriteFile(configPath, []byte(initialConfig), 0644))
 
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	cmd := newChannelsStatusCommand()
 	b := bytes.NewBufferString("")
@@ -63,10 +63,10 @@ func TestChannelsStatusCommand_Fallback(t *testing.T) {
 	initialConfig := `{"gateway": {"port": 65535}, "channels": {"telegram": {"enabled": true, "botToken": "token123"}}}`
 	require.NoError(t, os.WriteFile(configPath, []byte(initialConfig), 0644))
 
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	cmd := newChannelsStatusCommand()
 	b := bytes.NewBufferString("")

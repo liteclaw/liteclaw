@@ -36,7 +36,6 @@ type Adapter struct {
 	botID          string
 	token          string
 	encodingAESKey string
-	showThinking   bool
 
 	mu sync.RWMutex
 
@@ -78,7 +77,6 @@ func New(cfg *Config, logger zerolog.Logger) *Adapter {
 		botID:          cfg.BotID,
 		token:          cfg.Token,
 		encodingAESKey: cfg.EncodingAESKey,
-		showThinking:   cfg.ShowThinking,
 	}
 }
 
@@ -166,12 +164,10 @@ func (a *Adapter) Send(ctx context.Context, req *channels.SendRequest) (*channel
 	// Clean up text (remove <think> tags) before sending
 	cleanText := req.Text
 
-	if !a.showThinking {
-		// Remove <think>...</think> blocks if showThinking is false (default)
-		re := regexp.MustCompile(`(?s)<think>.*?</think>`) // (?s) makes . match newlines
-		cleanText = re.ReplaceAllString(cleanText, "")
-		cleanText = strings.TrimSpace(cleanText)
-	}
+	// Always remove <think>...</think> blocks from response
+	re := regexp.MustCompile(`(?s)<think>.*?</think>`) // (?s) makes . match newlines
+	cleanText = re.ReplaceAllString(cleanText, "")
+	cleanText = strings.TrimSpace(cleanText)
 
 	// Send POST request to response_url
 	// Format: { "msgtype": "markdown", "markdown": { "content": "..." } }
@@ -190,7 +186,7 @@ func (a *Adapter) Send(ctx context.Context, req *channels.SendRequest) (*channel
 		a.Logger().Error().Err(err).Msg("WeCom Reply Failed (Network)")
 		return &channels.SendResult{Success: false, Error: err.Error()}, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	// Log the FULL response body from WeCom API

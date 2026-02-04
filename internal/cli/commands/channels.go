@@ -60,7 +60,7 @@ func newChannelsStatusCommand() *cobra.Command {
 			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 3, ' ', 0)
 
 			if err == nil && resp.StatusCode == 200 {
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				// Parse Gateway Status
 				type ChannelStatus struct {
 					Name      string `json:"name"`
@@ -77,36 +77,36 @@ func newChannelsStatusCommand() *cobra.Command {
 				var status StatusResponse
 				if err := json.NewDecoder(resp.Body).Decode(&status); err == nil {
 					cmd.Printf("Gateway: %s (Uptime: %s)\n\n", strings.ToUpper(status.Status), status.Uptime)
-					fmt.Fprintln(w, "Channel\tType\tStatus\tSessions")
+					_, _ = fmt.Fprintln(w, "Channel\tType\tStatus\tSessions")
 					for _, ch := range status.Channels {
 						state := "Offline"
 						if ch.Connected {
 							state = "Online"
 						}
-						fmt.Fprintf(w, "%s\t%s\t%s\t%d\n", ch.Name, ch.Type, state, ch.Sessions)
+						_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%d\n", ch.Name, ch.Type, state, ch.Sessions)
 					}
-					w.Flush()
+					_ = w.Flush()
 					return
 				}
 			}
 
 			// Fallback to static config
 			cmd.Println("Gateway not reachable. Showing configured channels:")
-			fmt.Fprintln(w, "Channel\tEnabled\tConfigured")
+			_, _ = fmt.Fprintln(w, "Channel\tEnabled\tConfigured")
 
 			// Check Config
-			fmt.Fprintf(w, "telegram\t%v\t%v\n", cfg.Channels.Telegram.Enabled, cfg.Channels.Telegram.BotToken != "")
-			fmt.Fprintf(w, "discord\t%v\t%v\n", cfg.Channels.Discord.Enabled, cfg.Channels.Discord.Token != "")
-			fmt.Fprintf(w, "imessage\t%v\t%v\n", cfg.Channels.IMessage.Enabled, true) // dbPath optional?
+			_, _ = fmt.Fprintf(w, "telegram\t%v\t%v\n", cfg.Channels.Telegram.Enabled, cfg.Channels.Telegram.BotToken != "")
+			_, _ = fmt.Fprintf(w, "discord\t%v\t%v\n", cfg.Channels.Discord.Enabled, cfg.Channels.Discord.Token != "")
+			_, _ = fmt.Fprintf(w, "imessage\t%v\t%v\n", cfg.Channels.IMessage.Enabled, true) // dbPath optional?
 			// fmt.Fprintf(w, "signal\t%v\t%v\n", cfg.Channels.Signal.Enabled, true)
 			// fmt.Fprintf(w, "whatsapp\t%v\t%v\n", cfg.Channels.WhatsApp.Enabled, true)
 			// fmt.Fprintf(w, "slack\t%v\t%v\n", cfg.Channels.Slack.Enabled, cfg.Channels.Slack.BotToken != "")
-			fmt.Fprintf(w, "wecom\t%v\t%v\n", cfg.Channels.WeCom.Enabled, cfg.Channels.WeCom.Token != "")
-			fmt.Fprintf(w, "qq\t%v\t%v\n", cfg.Channels.QQ.Enabled, cfg.Channels.QQ.AppID != 0)
-			fmt.Fprintf(w, "feishu\t%v\t%v\n", cfg.Channels.Feishu.Enabled, cfg.Channels.Feishu.AppID != "")
-			fmt.Fprintf(w, "dingtalk\t%v\t%v\n", cfg.Channels.DingTalk.Enabled, cfg.Channels.DingTalk.AppKey != "")
+			_, _ = fmt.Fprintf(w, "wecom\t%v\t%v\n", cfg.Channels.WeCom.Enabled, cfg.Channels.WeCom.Token != "")
+			_, _ = fmt.Fprintf(w, "qq\t%v\t%v\n", cfg.Channels.QQ.Enabled, cfg.Channels.QQ.AppID != 0)
+			_, _ = fmt.Fprintf(w, "feishu\t%v\t%v\n", cfg.Channels.Feishu.Enabled, cfg.Channels.Feishu.AppID != "")
+			_, _ = fmt.Fprintf(w, "dingtalk\t%v\t%v\n", cfg.Channels.DingTalk.Enabled, cfg.Channels.DingTalk.AppKey != "")
 			// ... add others
-			w.Flush()
+			_ = w.Flush()
 		},
 	}
 }

@@ -178,14 +178,10 @@ type DingTalkConfig struct {
 
 type WeComConfig struct {
 	Enabled        bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	CorpID         string `json:"corpId" yaml:"corpId" mapstructure:"corpId"`
-	AgentID        int64  `json:"agentId" yaml:"agentId" mapstructure:"agentId"`
-	AgentSecret    string `json:"agentSecret" yaml:"agentSecret" mapstructure:"agentSecret"`
 	Token          string `json:"token" yaml:"token" mapstructure:"token"`
 	EncodingAESKey string `json:"encodingAesKey" yaml:"encodingAesKey" mapstructure:"encodingAesKey"`
 	Port           int    `json:"port" yaml:"port" mapstructure:"port"`
 	BotID          string `json:"botId" yaml:"botId" mapstructure:"botId"`
-	ShowThinking   bool   `json:"showThinking" yaml:"showThinking" mapstructure:"showThinking"`
 }
 
 type TelegramConfig struct {
@@ -424,7 +420,7 @@ func Load() (*Config, error) {
 		// We expand the value first (in case it refers to existing shell envs), then set it.
 		// e.g. "PATH": "${PATH}:/new/bin"
 		expandedVal := os.ExpandEnv(v)
-		os.Setenv(k, expandedVal)
+		_ = os.Setenv(k, expandedVal)
 		// Update the map with the expanded value for consistency
 		cfg.Env[k] = expandedVal
 	}

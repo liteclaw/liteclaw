@@ -200,7 +200,7 @@ func (c *Client) request(ctx context.Context, method string, params map[string]i
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {

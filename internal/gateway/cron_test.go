@@ -20,7 +20,7 @@ func TestCronHandlers(t *testing.T) {
 	// Setup Scheduler
 	tmpDir, err := os.MkdirTemp("", "gateway-cron-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	logger := zerolog.Nop()
 	sched := cron.NewScheduler(tmpDir+"/jobs.json", logger)

@@ -32,11 +32,11 @@ func NewService(cfg *config.Config, sender tools.MessageSender) *Service {
 	// checks cfg.Env and sets os.Setenv so all tools/libs can access them.
 	for k, v := range cfg.Env {
 		if v != "" {
-			os.Setenv(k, v)
+			_ = os.Setenv(k, v)
 			// Also set uppercase version for convention (e.g. minimax_api_key -> MINIMAX_API_KEY)
 			upperK := strings.ToUpper(k)
 			if upperK != k {
-				os.Setenv(upperK, v)
+				_ = os.Setenv(upperK, v)
 			}
 		}
 	}
@@ -105,16 +105,17 @@ func NewService(cfg *config.Config, sender tools.MessageSender) *Service {
 
 	// 3. Init Provider
 	// Default behavior based on config "api" field
-	if p.API == "anthropic-messages" {
+	switch p.API {
+	case "anthropic-messages":
 		prov := llm.NewAnthropicProvider(apiKey, baseURL)
 		prov.Verbose = cfg.Logging.Verbose
 		provider = prov
-	} else if p.API == "openai-completions" || p.API == "" {
+	case "openai-completions", "":
 		// Default to OpenAI
 		prov := llm.NewOpenAIProviderWithConfig(apiKey, baseURL)
 		prov.Verbose = cfg.Logging.Verbose
 		provider = prov
-	} else {
+	default:
 		// Fallback or error? For now default to OpenAI to be safe
 		fmt.Printf("Warning: Unknown API type '%s' for provider '%s'. Defaulting to OpenAI.\n", p.API, providerName)
 		prov := llm.NewOpenAIProviderWithConfig(apiKey, baseURL)
@@ -210,9 +211,10 @@ func NewService(cfg *config.Config, sender tools.MessageSender) *Service {
 
 		// Must drain the stream for execution to complete
 		for evt := range stream {
-			if evt.Type == "text" {
+			switch evt.Type {
+			case "text":
 				rawBuffer.WriteString(evt.Content)
-			} else if evt.Type == "error" {
+			case "error":
 				fmt.Printf("[CRON] Error during job execution: %s\n", evt.Error)
 			}
 		}
@@ -425,6 +427,22 @@ func (s *Service) ProcessChat(ctx context.Context, sessionID, message string, on
 	}
 
 	return nil
+}
+
+// LoadSessionHistory loads persisted history into the agent's session.
+// Call this before ProcessChat to restore conversation context.
+func (s *Service) LoadSessionHistory(sessionID string, messages []Message) {
+	if s.Agent != nil {
+		s.Agent.LoadHistoryForSession(sessionID, messages)
+	}
+}
+
+// HasSession checks if the agent has this session in memory.
+func (s *Service) HasSession(sessionID string) bool {
+	if s.Agent != nil {
+		return s.Agent.HasSession(sessionID)
+	}
+	return false
 }
 
 func sanitizeModelOutput(raw string) string {

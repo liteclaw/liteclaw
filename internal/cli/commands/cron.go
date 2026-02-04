@@ -61,7 +61,7 @@ func newCronListCommand() *cobra.Command {
 			}
 
 			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-			fmt.Fprintln(w, "ID\tNAME\tENABLED\tSCHEDULE\tLAST RUN\tSTATUS")
+			_, _ = fmt.Fprintln(w, "ID\tNAME\tENABLED\tSCHEDULE\tLAST RUN\tSTATUS")
 			for _, j := range jobs {
 				sched := "?"
 				switch j.Schedule.Kind {
@@ -95,9 +95,9 @@ func newCronListCommand() *cobra.Command {
 					enabled = "Yes"
 				}
 
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", j.ID, j.Name, enabled, sched, lastRun, status)
+				_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", j.ID, j.Name, enabled, sched, lastRun, status)
 			}
-			w.Flush()
+			_ = w.Flush()
 		},
 	}
 	return cmd
@@ -439,7 +439,7 @@ func updateJobWithPatch(out io.Writer, id string, patch map[string]interface{}) 
 	if err := updateCronJobLocal(storePath, id, patch); err != nil {
 		return fmt.Errorf("failed to update local cron file: %w", err)
 	}
-	fmt.Fprintf(out, "Warning: gateway not reachable; updated local cron file: %s\n", storePath)
+	_, _ = fmt.Fprintf(out, "Warning: gateway not reachable; updated local cron file: %s\n", storePath)
 	return nil
 }
 
@@ -502,7 +502,7 @@ func fetchCronList(out io.Writer) (*config.Config, []cron.Job, error) {
 
 		resp, err := http.DefaultClient.Do(req)
 		if err == nil {
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			if resp.StatusCode == 200 {
 				var payload struct {
 					Jobs []cron.Job `json:"jobs"`
@@ -512,10 +512,10 @@ func fetchCronList(out io.Writer) (*config.Config, []cron.Job, error) {
 				}
 			} else {
 				b, _ := io.ReadAll(resp.Body)
-				fmt.Fprintf(out, "Warning: gateway error (%d): %s\n", resp.StatusCode, string(b))
+				_, _ = fmt.Fprintf(out, "Warning: gateway error (%d): %s\n", resp.StatusCode, string(b))
 			}
 		} else {
-			fmt.Fprintf(out, "Warning: failed to contact gateway: %v\n", err)
+			_, _ = fmt.Fprintf(out, "Warning: failed to contact gateway: %v\n", err)
 		}
 	}
 
@@ -525,7 +525,7 @@ func fetchCronList(out io.Writer) (*config.Config, []cron.Job, error) {
 	if err != nil {
 		return cfg, nil, fmt.Errorf("failed to read local cron file: %w", err)
 	}
-	fmt.Fprintf(out, "Note: gateway not reachable; loaded local cron file: %s\n", storePath)
+	_, _ = fmt.Fprintf(out, "Note: gateway not reachable; loaded local cron file: %s\n", storePath)
 	return cfg, jobs, nil
 }
 
@@ -562,7 +562,7 @@ func addCronJob(out io.Writer, job *cron.Job) error {
 	if err := callCronAPI("POST", "/cron/jobs", job, nil); err == nil {
 		return nil
 	} else {
-		fmt.Fprintf(out, "Warning: failed to contact gateway, falling back to local file: %v\n", err)
+		_, _ = fmt.Fprintf(out, "Warning: failed to contact gateway, falling back to local file: %v\n", err)
 	}
 
 	cfg, err := config.Load()
@@ -573,7 +573,7 @@ func addCronJob(out io.Writer, job *cron.Job) error {
 	if err := addCronJobToFile(storePath, job); err != nil {
 		return fmt.Errorf("failed to add job to local file: %w", err)
 	}
-	fmt.Fprintf(out, "Added to local cron file: %s\n", storePath)
+	_, _ = fmt.Fprintf(out, "Added to local cron file: %s\n", storePath)
 	return nil
 }
 
@@ -630,7 +630,7 @@ func removeCronJob(out io.Writer, id string) error {
 	if err := callCronAPI("DELETE", path, nil, nil); err == nil {
 		return nil
 	} else {
-		fmt.Fprintf(out, "Warning: failed to contact gateway, falling back to local file: %v\n", err)
+		_, _ = fmt.Fprintf(out, "Warning: failed to contact gateway, falling back to local file: %v\n", err)
 	}
 
 	cfg, err := config.Load()
@@ -641,7 +641,7 @@ func removeCronJob(out io.Writer, id string) error {
 	if err := removeCronJobFromFile(storePath, id); err != nil {
 		return fmt.Errorf("failed to remove job from local file: %w", err)
 	}
-	fmt.Fprintf(out, "Removed from local cron file: %s\n", storePath)
+	_, _ = fmt.Fprintf(out, "Removed from local cron file: %s\n", storePath)
 	return nil
 }
 
@@ -668,7 +668,6 @@ func removeCronJobFromFile(path, id string) error {
 	store.Jobs = filtered
 	return writeCronStoreFile(path, store)
 }
-
 
 func updateCronJobLocal(path, id string, patch map[string]interface{}) error {
 	store, err := loadCronStoreFile(path)
@@ -745,7 +744,7 @@ func runCronJob(out io.Writer, id string) error {
 	if err := callCronAPI("POST", path, nil, nil); err == nil {
 		return nil
 	} else {
-		fmt.Fprintf(out, "Warning: failed to contact gateway, trying local execution: %v\n", err)
+		_, _ = fmt.Fprintf(out, "Warning: failed to contact gateway, trying local execution: %v\n", err)
 	}
 
 	cfg, err := config.Load()
@@ -798,7 +797,7 @@ func runCronJobLocal(out io.Writer, path string, cfg *config.Config, id string) 
 	if err := writeCronStoreFile(path, store); err != nil {
 		return err
 	}
-	fmt.Fprintf(out, "Local run complete (status: %s). Response length: %d\n", job.State.LastStatus, resp.Len())
+	_, _ = fmt.Fprintf(out, "Local run complete (status: %s). Response length: %d\n", job.State.LastStatus, resp.Len())
 	return err
 }
 
@@ -810,7 +809,7 @@ func showCronHistory(out io.Writer, id string) error {
 	if err := callCronAPI("GET", path, nil, &resp); err == nil {
 		return printCronHistory(out, resp.History)
 	} else {
-		fmt.Fprintf(out, "Warning: failed to contact gateway, falling back to local file: %v\n", err)
+		_, _ = fmt.Fprintf(out, "Warning: failed to contact gateway, falling back to local file: %v\n", err)
 	}
 
 	cfg, err := config.Load()
@@ -832,19 +831,19 @@ func showCronHistory(out io.Writer, id string) error {
 
 func printCronHistory(out io.Writer, history []cron.JobState) error {
 	if len(history) == 0 {
-		fmt.Fprintln(out, "No history available.")
+		_, _ = fmt.Fprintln(out, "No history available.")
 		return nil
 	}
 	s := history[0]
 	if s.LastRunAtMs == 0 {
-		fmt.Fprintln(out, "No history available.")
+		_, _ = fmt.Fprintln(out, "No history available.")
 		return nil
 	}
-	fmt.Fprintf(out, "Last Run: %s\n", time.UnixMilli(s.LastRunAtMs).Format(time.RFC3339))
-	fmt.Fprintf(out, "Status:   %s\n", s.LastStatus)
-	fmt.Fprintf(out, "Duration: %dms\n", s.LastDurationMs)
+	_, _ = fmt.Fprintf(out, "Last Run: %s\n", time.UnixMilli(s.LastRunAtMs).Format(time.RFC3339))
+	_, _ = fmt.Fprintf(out, "Status:   %s\n", s.LastStatus)
+	_, _ = fmt.Fprintf(out, "Duration: %dms\n", s.LastDurationMs)
 	if s.LastError != "" {
-		fmt.Fprintf(out, "Error:    %s\n", s.LastError)
+		_, _ = fmt.Fprintf(out, "Error:    %s\n", s.LastError)
 	}
 	return nil
 }
@@ -885,7 +884,7 @@ func callCronAPI(method, path string, body interface{}, result interface{}) erro
 	if err != nil {
 		return fmt.Errorf("connection failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		b, _ := io.ReadAll(resp.Body)

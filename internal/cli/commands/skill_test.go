@@ -29,10 +29,10 @@ description: A test skill
 	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(skillContent), 0644))
 
 	// Set overrides
-	os.Setenv("LITECLAW_BUNDLED_SKILLS_DIR", bundledDir)
-	os.Setenv("LITECLAW_MANAGED_SKILLS_DIR", managedDir)
-	defer os.Unsetenv("LITECLAW_BUNDLED_SKILLS_DIR")
-	defer os.Unsetenv("LITECLAW_MANAGED_SKILLS_DIR")
+	_ = os.Setenv("LITECLAW_BUNDLED_SKILLS_DIR", bundledDir)
+	_ = os.Setenv("LITECLAW_MANAGED_SKILLS_DIR", managedDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_BUNDLED_SKILLS_DIR") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_MANAGED_SKILLS_DIR") }()
 
 	cmd := newSkillListCommand()
 

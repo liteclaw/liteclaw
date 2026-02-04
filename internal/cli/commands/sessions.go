@@ -50,7 +50,7 @@ func newSessionsListCommand() *cobra.Command {
 			}
 
 			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 3, ' ', 0)
-			fmt.Fprintln(w, "Key\tSessionID\tChannel\tRecency")
+			_, _ = fmt.Fprintln(w, "Key\tSessionID\tChannel\tRecency")
 
 			for _, s := range sessions {
 				key := s.Key
@@ -66,9 +66,9 @@ func newSessionsListCommand() *cobra.Command {
 					recency = "just now"
 				}
 
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", key, sid, s.Channel, recency)
+				_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", key, sid, s.Channel, recency)
 			}
-			w.Flush()
+			_ = w.Flush()
 		},
 	}
 

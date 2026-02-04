@@ -169,7 +169,7 @@ func (p *OpenAIProvider) ChatStream(ctx context.Context, req *ChatRequest) (<-ch
 
 	go func() {
 		defer close(chunks)
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 
 		for {
 			resp, err := stream.Recv()

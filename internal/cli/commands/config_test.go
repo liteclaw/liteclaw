@@ -19,10 +19,10 @@ func TestConfigCommand(t *testing.T) {
 	require.NoError(t, os.WriteFile(configPath, []byte(initialConfig), 0644))
 
 	// Isolate from real ~/.liteclaw
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	// 1. Test 'config get'
 	getCmd := newConfigGetCommand()

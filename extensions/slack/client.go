@@ -190,7 +190,7 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body inte
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {

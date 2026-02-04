@@ -355,10 +355,10 @@ func runModelsConfig(cmd *cobra.Command, pName, baseURL, apiType string) error {
 	if baseURL != "" {
 		pConfig.BaseURL = baseURL
 		updated = true
-		fmt.Fprintf(out, "Base URL set to: %s\n", baseURL)
+		_, _ = fmt.Fprintf(out, "Base URL set to: %s\n", baseURL)
 	} else {
-		fmt.Fprintf(out, "Current Base URL: %s\n", pConfig.BaseURL)
-		fmt.Fprint(out, "New Base URL (leave blank to keep): ")
+		_, _ = fmt.Fprintf(out, "Current Base URL: %s\n", pConfig.BaseURL)
+		_, _ = fmt.Fprint(out, "New Base URL (leave blank to keep): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 		if input != "" {
@@ -375,23 +375,24 @@ func runModelsConfig(cmd *cobra.Command, pName, baseURL, apiType string) error {
 			pConfig.API = "openai-completions"
 		}
 		updated = true
-		fmt.Fprintf(out, "API Type set to: %s\n", pConfig.API)
+		_, _ = fmt.Fprintf(out, "API Type set to: %s\n", pConfig.API)
 	} else {
-		fmt.Fprintf(out, "Current API Type: %s\n", pConfig.API)
-		fmt.Fprint(out, "New API Type (openai/anthropic, leave blank to keep): ")
+		_, _ = fmt.Fprintf(out, "Current API Type: %s\n", pConfig.API)
+		_, _ = fmt.Fprint(out, "New API Type (openai/anthropic, leave blank to keep): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(strings.ToLower(input))
-		if input == "anthropic" {
+		switch input {
+		case "anthropic":
 			pConfig.API = "anthropic-messages"
 			updated = true
-		} else if input == "openai" {
+		case "openai":
 			pConfig.API = "openai-completions"
 			updated = true
 		}
 	}
 
 	if !updated {
-		fmt.Fprintln(out, "No changes made.")
+		_, _ = fmt.Fprintln(out, "No changes made.")
 		return nil
 	}
 
@@ -400,7 +401,7 @@ func runModelsConfig(cmd *cobra.Command, pName, baseURL, apiType string) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Successfully updated %s\n", pName)
+	_, _ = fmt.Fprintf(out, "Successfully updated %s\n", pName)
 	return nil
 }
 
@@ -426,8 +427,8 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 	// Check if provider exists
 	pConfig, exists := cfg.Models.Providers[pName]
 	if exists {
-		fmt.Fprintf(out, "Provider '%s' already exists.\n", pName)
-		fmt.Fprintf(out, "Add model '%s' to existing provider '%s'? (Y/n): ", mID, pName)
+		_, _ = fmt.Fprintf(out, "Provider '%s' already exists.\n", pName)
+		_, _ = fmt.Fprintf(out, "Add model '%s' to existing provider '%s'? (Y/n): ", mID, pName)
 		confirm, _ := reader.ReadString('\n')
 		confirm = strings.TrimSpace(strings.ToLower(confirm))
 		if confirm == "n" || confirm == "no" {
@@ -435,20 +436,20 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 		}
 	} else {
 		// New Provider
-		fmt.Fprintf(out, "Creating new provider: %s\n", pName)
+		_, _ = fmt.Fprintf(out, "Creating new provider: %s\n", pName)
 
-		fmt.Fprint(out, "Base URL: ")
+		_, _ = fmt.Fprint(out, "Base URL: ")
 		baseURL, _ := reader.ReadString('\n')
 		baseURL = strings.TrimSpace(baseURL)
 		if baseURL == "" {
 			return fmt.Errorf("base URL required")
 		}
 
-		fmt.Fprint(out, "API Key: ")
+		_, _ = fmt.Fprint(out, "API Key: ")
 		var apiKey string
 		if f, ok := in.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
 			byteKey, _ := term.ReadPassword(int(f.Fd()))
-			fmt.Fprintln(out)
+			_, _ = fmt.Fprintln(out)
 			apiKey = strings.TrimSpace(string(byteKey))
 		} else {
 			// For tests/non-terminal
@@ -460,7 +461,7 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("api key required")
 		}
 
-		fmt.Fprint(out, "API Type (openai/anthropic) [default: openai]: ")
+		_, _ = fmt.Fprint(out, "API Type (openai/anthropic) [default: openai]: ")
 		apiTypeInput, _ := reader.ReadString('\n')
 		apiTypeInput = strings.TrimSpace(strings.ToLower(apiTypeInput))
 
@@ -468,7 +469,7 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 		if apiTypeInput == "anthropic" {
 			apiType = "anthropic-messages"
 		} else if apiTypeInput != "" && apiTypeInput != "openai" {
-			fmt.Fprintf(out, "Warning: Unknown API type input '%s', defaulting to openai-completions.\n", apiTypeInput)
+			_, _ = fmt.Fprintf(out, "Warning: Unknown API type input '%s', defaulting to openai-completions.\n", apiTypeInput)
 		}
 
 		// Save apiKey to env
@@ -487,9 +488,9 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	// Model Configuration
-	fmt.Fprintf(out, "\nConfiguring model '%s'...\n", mID)
+	_, _ = fmt.Fprintf(out, "\nConfiguring model '%s'...\n", mID)
 
-	fmt.Fprint(out, "Context Window (default 128000): ")
+	_, _ = fmt.Fprint(out, "Context Window (default 128000): ")
 	ctxInput, _ := reader.ReadString('\n')
 	ctxInput = strings.TrimSpace(ctxInput)
 	contextWindow := 128000
@@ -511,7 +512,7 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 	modelExists := false
 	for i, m := range pConfig.Models {
 		if m.ID == mID {
-			fmt.Fprintf(out, "Model '%s' already exists. Overwrite? (y/N): ", mID)
+			_, _ = fmt.Fprintf(out, "Model '%s' already exists. Overwrite? (y/N): ", mID)
 			confirm, _ := reader.ReadString('\n')
 			if strings.ToLower(strings.TrimSpace(confirm)) != "y" {
 				return nil
@@ -534,7 +535,7 @@ func runModelsAdd(cmd *cobra.Command, args []string) error {
 	if err := config.Save(cfg); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
-	fmt.Fprintf(out, "Successfully added %s/%s\n", pName, mID)
+	_, _ = fmt.Fprintf(out, "Successfully added %s/%s\n", pName, mID)
 	return nil
 }
 
@@ -589,14 +590,14 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prompt for key
-	fmt.Fprintf(out, "Enter API Key for %s: ", provider)
+	_, _ = fmt.Fprintf(out, "Enter API Key for %s: ", provider)
 	var key string
 	if f, ok := in.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
 		bytePassword, err := term.ReadPassword(int(f.Fd()))
 		if err != nil {
 			return fmt.Errorf("failed to read password: %w", err)
 		}
-		fmt.Fprintln(out) // Print newline after hidden input
+		_, _ = fmt.Fprintln(out) // Print newline after hidden input
 		key = string(bytePassword)
 	} else {
 		reader := bufio.NewReader(in)
@@ -622,7 +623,7 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	fmt.Fprintf(out, "Successfully saved API Key for %s\n", provider)
+	_, _ = fmt.Fprintf(out, "Successfully saved API Key for %s\n", provider)
 	return nil
 }
 
@@ -674,7 +675,7 @@ func newModelsListCommand() *cobra.Command {
 			table.AppendBulk(rows)
 			table.Render()
 
-			fmt.Fprintf(cmd.OutOrStdout(), "\nCurrently Active Model: %s\n", cfg.Agents.Defaults.Model.Primary)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nCurrently Active Model: %s\n", cfg.Agents.Defaults.Model.Primary)
 
 			return nil
 		},
@@ -718,20 +719,20 @@ func runModelsStatus(cmd *cobra.Command, jsonOutput, plainOutput bool) error {
 	}
 
 	if plainOutput {
-		fmt.Fprintf(out, "Default Model: %s\n", cfg.Agents.Defaults.Model.Primary)
+		_, _ = fmt.Fprintf(out, "Default Model: %s\n", cfg.Agents.Defaults.Model.Primary)
 		return nil
 	}
 
 	// Rich Output
-	fmt.Fprintf(out, "\n🤖 Configured Models Status\n")
-	fmt.Fprintf(out, "========================\n\n")
-	fmt.Fprintf(out, "Default Model: %s\n", cfg.Agents.Defaults.Model.Primary)
-	fmt.Fprintf(out, "\nProviders:\n")
+	_, _ = fmt.Fprintf(out, "\n🤖 Configured Models Status\n")
+	_, _ = fmt.Fprintf(out, "========================\n\n")
+	_, _ = fmt.Fprintf(out, "Default Model: %s\n", cfg.Agents.Defaults.Model.Primary)
+	_, _ = fmt.Fprintf(out, "\nProviders:\n")
 
 	for p, info := range status["providers"].(map[string]interface{}) {
-		fmt.Fprintf(out, "- %s: %v\n", p, info)
+		_, _ = fmt.Fprintf(out, "- %s: %v\n", p, info)
 	}
-	fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out)
 
 	return nil
 }
@@ -810,7 +811,7 @@ func newModelsSetCommand() *cobra.Command {
 				return fmt.Errorf("model '%s' not found for provider '%s'. Run 'liteclaw models list' to see available models", modelID, providerName)
 			}
 
-			fmt.Fprintf(out, "Setting default model to: %s\n", modelRef)
+			_, _ = fmt.Fprintf(out, "Setting default model to: %s\n", modelRef)
 			cfg.Agents.Defaults.Model.Primary = modelRef
 			return config.Save(cfg)
 		},

@@ -15,15 +15,14 @@ func TestGatewayCommand_StartForeground(t *testing.T) {
 	configPath := filepath.Join(tempDir, "liteclaw.json")
 	require.NoError(t, os.WriteFile(configPath, []byte("{}"), 0644))
 
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
 	// Mock config dir for lock file
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
-	os.Setenv("LITECLAW_SKIP_GATEWAY_START", "true")
-	defer os.Unsetenv("LITECLAW_SKIP_GATEWAY_START")
+	_ = os.Setenv("LITECLAW_SKIP_GATEWAY_START", "true")
+	defer func() { _ = os.Unsetenv("LITECLAW_SKIP_GATEWAY_START") }()
 
 	cmd := newGatewayStartCommand()
 	b := bytes.NewBufferString("")
@@ -40,12 +39,12 @@ func TestGatewayCommand_Restart(t *testing.T) {
 	configPath := filepath.Join(tempDir, "liteclaw.json")
 	_ = os.WriteFile(configPath, []byte(`{"gateway":{"port":18789}}`), 0644)
 
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	os.Setenv("LITECLAW_SKIP_GATEWAY_START", "true")
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
-	defer os.Unsetenv("LITECLAW_SKIP_GATEWAY_START")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	_ = os.Setenv("LITECLAW_SKIP_GATEWAY_START", "true")
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_SKIP_GATEWAY_START") }()
 
 	cmd := newGatewayRestartCommand()
 	b := bytes.NewBufferString("")

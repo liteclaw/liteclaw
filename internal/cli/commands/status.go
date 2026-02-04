@@ -84,32 +84,32 @@ func runStatus(out io.Writer, host string, port int, jsonOutput bool) {
 
 	if jsonOutput {
 		if err != nil {
-			fmt.Fprintf(out, `{"running": false, "error": "%s"}`, err.Error())
-			fmt.Fprintln(out)
+			_, _ = fmt.Fprintf(out, `{"running": false, "error": "%s"}`, err.Error())
+			_, _ = fmt.Fprintln(out)
 			return
 		}
 		data, _ := json.MarshalIndent(status, "", "  ")
-		fmt.Fprintln(out, string(data))
+		_, _ = fmt.Fprintln(out, string(data))
 		return
 	}
 
-	fmt.Fprintln(out, "🦞 LiteClaw Status")
-	fmt.Fprintln(out, "================")
-	fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out, "🦞 LiteClaw Status")
+	_, _ = fmt.Fprintln(out, "================")
+	_, _ = fmt.Fprintln(out)
 
 	if err != nil {
-		fmt.Fprintln(out, "Gateway:   ✗ Not running")
-		fmt.Fprintln(out, "Channels:  -")
-		fmt.Fprintln(out, "Sessions:  -")
-		fmt.Fprintln(out)
-		fmt.Fprintln(out, "Start the gateway with: liteclaw gateway start")
+		_, _ = fmt.Fprintln(out, "Gateway:   ✗ Not running")
+		_, _ = fmt.Fprintln(out, "Channels:  -")
+		_, _ = fmt.Fprintln(out, "Sessions:  -")
+		_, _ = fmt.Fprintln(out)
+		_, _ = fmt.Fprintln(out, "Start the gateway with: liteclaw gateway start")
 		return
 	}
 
-	fmt.Fprintf(out, "Gateway:   ✓ Running on %s:%d\n", host, port)
-	fmt.Fprintf(out, "Version:   %s\n", status.Version)
-	fmt.Fprintf(out, "Uptime:    %s\n", status.Uptime)
-	fmt.Fprintf(out, "Sessions:  %d active\n", status.Sessions)
+	_, _ = fmt.Fprintf(out, "Gateway:   ✓ Running on %s:%d\n", host, port)
+	_, _ = fmt.Fprintf(out, "Version:   %s\n", status.Version)
+	_, _ = fmt.Fprintf(out, "Uptime:    %s\n", status.Uptime)
+	_, _ = fmt.Fprintf(out, "Sessions:  %d active\n", status.Sessions)
 
 	// Show connected channels
 	if len(status.Channels) > 0 {
@@ -122,21 +122,21 @@ func runStatus(out io.Writer, host string, port int, jsonOutput bool) {
 			}
 		}
 		if connected > 0 {
-			fmt.Fprintf(out, "Channels:  %d connected (%s)\n", connected, formatList(channelNames))
+			_, _ = fmt.Fprintf(out, "Channels:  %d connected (%s)\n", connected, formatList(channelNames))
 		} else {
-			fmt.Fprintf(out, "Channels:  %d registered, 0 connected\n", len(status.Channels))
+			_, _ = fmt.Fprintf(out, "Channels:  %d registered, 0 connected\n", len(status.Channels))
 		}
 	} else {
-		fmt.Fprintln(out, "Channels:  0 configured")
+		_, _ = fmt.Fprintln(out, "Channels:  0 configured")
 	}
 
 	// Show memory stats
-	fmt.Fprintln(out)
-	fmt.Fprintf(out, "Memory:    %s alloc, %s sys\n",
+	_, _ = fmt.Fprintln(out)
+	_, _ = fmt.Fprintf(out, "Memory:    %s alloc, %s sys\n",
 		formatBytes(status.Memory.Alloc),
 		formatBytes(status.Memory.Sys))
-	fmt.Fprintf(out, "Runtime:   %s (%s/%s)\n", status.GoVersion, status.OS, status.Arch)
-	fmt.Fprintln(out)
+	_, _ = fmt.Fprintf(out, "Runtime:   %s (%s/%s)\n", status.GoVersion, status.OS, status.Arch)
+	_, _ = fmt.Fprintln(out)
 }
 
 func fetchGatewayStatus(host string, port int) (*GatewayStatusResponse, error) {
@@ -159,7 +159,7 @@ func fetchGatewayStatus(host string, port int) (*GatewayStatusResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot connect to gateway: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("gateway returned status %d", resp.StatusCode)

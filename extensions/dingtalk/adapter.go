@@ -241,11 +241,13 @@ func (a *Adapter) handleChatBotMessage(ctx context.Context, data *chatbot.BotCal
 	}
 
 	// DingTalk "ConversationType": "1"(Private), "2"(Group)
-	if data.ConversationType == "1" {
+	// DingTalk "ConversationType": "1"(Private), "2"(Group)
+	switch data.ConversationType {
+	case "1":
 		incoming.ChatType = "direct"
-	} else if data.ConversationType == "2" {
+	case "2":
 		incoming.ChatType = "group"
-	} else {
+	default:
 		incoming.ChatType = "group" // Default fallback
 	}
 

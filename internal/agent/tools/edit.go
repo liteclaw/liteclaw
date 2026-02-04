@@ -105,7 +105,7 @@ func (t *EditTool) Execute(ctx context.Context, params map[string]interface{}) (
 	}
 
 	// Perform replacement
-	newContent := strings.Replace(contentStr, oldText, newText, -1)
+	newContent := strings.ReplaceAll(contentStr, oldText, newText)
 
 	result := &EditResult{
 		Path:        path,

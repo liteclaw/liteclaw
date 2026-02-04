@@ -104,11 +104,11 @@ func runGatewayStart(cmd *cobra.Command, args []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		if errors.Is(err, config.ErrConfigNotFound) {
-			fmt.Fprintln(out, "❌ No LiteClaw config found.")
-			fmt.Fprintln(out, "   Run: liteclaw onboard")
+			_, _ = fmt.Fprintln(out, "❌ No LiteClaw config found.")
+			_, _ = fmt.Fprintln(out, "   Run: liteclaw onboard")
 			return err
 		}
-		fmt.Fprintf(out, "Warning: Failed to load config: %v\n", err)
+		_, _ = fmt.Fprintf(out, "Warning: Failed to load config: %v\n", err)
 		cfg = &config.Config{}
 	}
 
@@ -128,9 +128,10 @@ func runGatewayStart(cmd *cobra.Command, args []string) error {
 	if cmd.Flags().Changed("host") {
 		host = hostFlag
 	} else {
-		if cfg.Gateway.Bind == "loopback" {
+		switch cfg.Gateway.Bind {
+		case "loopback":
 			host = "127.0.0.1"
-		} else if cfg.Gateway.Bind == "public" || cfg.Gateway.Bind == "0.0.0.0" {
+		case "public", "0.0.0.0":
 			host = "0.0.0.0"
 		}
 	}
@@ -166,16 +167,16 @@ func runGatewayStart(cmd *cobra.Command, args []string) error {
 		c.Stderr = logFile
 
 		if err := c.Start(); err != nil {
-			logFile.Close()
+			_ = logFile.Close()
 			return fmt.Errorf("failed to start background process: %w", err)
 		}
 
 		// Close file in parent
-		logFile.Close()
+		_ = logFile.Close()
 
-		fmt.Fprintf(out, "培育... LiteClaw Gateway started in background (PID: %d)\n", c.Process.Pid)
-		fmt.Fprintf(out, "Logs: %s\n", logPath)
-		fmt.Fprintln(out, "Use 'liteclaw logs' to view logs.")
+		_, _ = fmt.Fprintf(out, "培育... LiteClaw Gateway started in background (PID: %d)\n", c.Process.Pid)
+		_, _ = fmt.Fprintf(out, "Logs: %s\n", logPath)
+		_, _ = fmt.Fprintln(out, "Use 'liteclaw logs' to view logs.")
 		return nil // Success, naturally exit
 	}
 
@@ -193,14 +194,14 @@ func runGatewayStart(cmd *cobra.Command, args []string) error {
 	}
 
 	if !locked {
-		fmt.Fprintln(out, "❌ Error: LiteClaw Gateway is already running.")
-		fmt.Fprintf(out, "   Lock file found at: %s\n", lockPath)
-		fmt.Fprintln(out, "   Only one instance of the gateway service is allowed to prevent port conflicts")
-		fmt.Fprintln(out, "   and duplicate connections to chat platforms.")
-		fmt.Fprintln(out, "")
-		fmt.Fprintln(out, "   To check running processes:")
-		fmt.Fprintln(out, "     ps aux | grep liteclaw")
-		fmt.Fprintln(out, "")
+		_, _ = fmt.Fprintln(out, "❌ Error: LiteClaw Gateway is already running.")
+		_, _ = fmt.Fprintf(out, "   Lock file found at: %s\n", lockPath)
+		_, _ = fmt.Fprintln(out, "   Only one instance of the gateway service is allowed to prevent port conflicts")
+		_, _ = fmt.Fprintln(out, "   and duplicate connections to chat platforms.")
+		_, _ = fmt.Fprintln(out, "")
+		_, _ = fmt.Fprintln(out, "   To check running processes:")
+		_, _ = fmt.Fprintln(out, "     ps aux | grep liteclaw")
+		_, _ = fmt.Fprintln(out, "")
 		return fmt.Errorf("gateway already running")
 	}
 	defer func() { _ = fileLock.Unlock() }()
@@ -210,7 +211,7 @@ func runGatewayStart(cmd *cobra.Command, args []string) error {
 	}
 	defer func() { _ = removeGatewayPID() }()
 
-	fmt.Fprintf(out, "🦞 Starting LiteClaw Gateway on %s:%d\n", host, port)
+	_, _ = fmt.Fprintf(out, "🦞 Starting LiteClaw Gateway on %s:%d\n", host, port)
 
 	server := gateway.New(&gateway.Config{
 		Host: host,
@@ -219,7 +220,7 @@ func runGatewayStart(cmd *cobra.Command, args []string) error {
 
 	// For tests, skip actual start if configured
 	if os.Getenv("LITECLAW_SKIP_GATEWAY_START") == "true" {
-		fmt.Fprintln(out, "Skipping actual server start for testing.")
+		_, _ = fmt.Fprintln(out, "Skipping actual server start for testing.")
 		return nil
 	}
 
@@ -245,7 +246,7 @@ func runGatewayStop(cmd *cobra.Command) error {
 		return fmt.Errorf("failed to stop gateway (pid %d): %w", pid, err)
 	}
 
-	fmt.Fprintf(out, "Sent stop signal to gateway (PID %d)\n", pid)
+	_, _ = fmt.Fprintf(out, "Sent stop signal to gateway (PID %d)\n", pid)
 	waitForProcessExit(pid, 3*time.Second)
 	return nil
 }
@@ -265,20 +266,20 @@ func runGatewayStatus(cmd *cobra.Command) error {
 
 	status, err := fetchGatewayStatus("127.0.0.1", port)
 	if err != nil {
-		fmt.Fprintln(out, "Gateway: not running")
+		_, _ = fmt.Fprintln(out, "Gateway: not running")
 		return nil
 	}
 
-	fmt.Fprintf(out, "Gateway: %s (uptime %s)\n", status.Status, status.Uptime)
+	_, _ = fmt.Fprintf(out, "Gateway: %s (uptime %s)\n", status.Status, status.Uptime)
 	return nil
 }
 
 func runGatewayRestart(cmd *cobra.Command) error {
 	out := cmd.OutOrStdout()
 
-	fmt.Fprintln(out, "Restarting gateway server...")
+	_, _ = fmt.Fprintln(out, "Restarting gateway server...")
 	if err := runGatewayStop(cmd); err != nil {
-		fmt.Fprintf(out, "Warning: stop failed (%v), continuing to start...\n", err)
+		_, _ = fmt.Fprintf(out, "Warning: stop failed (%v), continuing to start...\n", err)
 	}
 
 	return runGatewayStart(cmd, nil)

@@ -15,7 +15,7 @@ import (
 func TestScheduler_Persistence(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "liteclaw-cron")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	storePath := filepath.Join(tmpDir, "jobs.json")
 	logger := zerolog.Nop()

@@ -61,7 +61,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, req ChatRequest, onDe
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("api request failed with status: %d", resp.StatusCode)

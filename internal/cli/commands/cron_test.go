@@ -48,10 +48,10 @@ func TestCronListCommand(t *testing.T) {
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
 
 	// Set both config path AND state dir to isolate from real config
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	cmd := newCronListCommand()
 
@@ -86,10 +86,10 @@ func TestCronAddCommand(t *testing.T) {
 	configContent := fmt.Sprintf(`{"gateway":{"port":%s},"agents":{"defaults":{"workspace":"%s"}}}`, parts[1], tempDir)
 	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
 
-	os.Setenv("LITECLAW_CONFIG_PATH", configPath)
-	os.Setenv("LITECLAW_STATE_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_CONFIG_PATH")
-	defer os.Unsetenv("LITECLAW_STATE_DIR")
+	_ = os.Setenv("LITECLAW_CONFIG_PATH", configPath)
+	_ = os.Setenv("LITECLAW_STATE_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_CONFIG_PATH") }()
+	defer func() { _ = os.Unsetenv("LITECLAW_STATE_DIR") }()
 
 	cmd := newCronAddCommand()
 

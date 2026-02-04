@@ -210,7 +210,7 @@ func (t *ExecPtyTool) Execute(ctx context.Context, params map[string]interface{}
 		// Fallback to regular exec
 		return t.ExecTool.Execute(ctx, params)
 	}
-	defer ptmx.Close()
+	defer func() { _ = ptmx.Close() }()
 
 	// Read output
 	var output bytes.Buffer

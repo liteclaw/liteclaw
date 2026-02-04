@@ -18,7 +18,7 @@ func (s *Server) handleExtensionRelay(c echo.Context) error {
 		s.logger.Error().Err(err).Msg("Failed to upgrade extension relay connection")
 		return err
 	}
-	defer ws.Close()
+	defer func() { _ = ws.Close() }()
 
 	s.logger.Info().Str("profile", profile).Msg("Browser extension connected")
 	s.relayManager.RegisterConnection(profile, ws)

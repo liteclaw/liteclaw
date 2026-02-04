@@ -36,8 +36,8 @@ func TestSessionsListCommand(t *testing.T) {
 	require.NoError(t, os.WriteFile(sessionsFile, data, 0644))
 
 	// Mock env
-	os.Setenv("LITECLAW_DATA_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_DATA_DIR")
+	_ = os.Setenv("LITECLAW_DATA_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_DATA_DIR") }()
 
 	cmd := newSessionsListCommand()
 	b := bytes.NewBufferString("")
@@ -54,8 +54,8 @@ func TestSessionsListCommand(t *testing.T) {
 
 func TestSessionsListCommand_Empty(t *testing.T) {
 	tempDir := t.TempDir()
-	os.Setenv("LITECLAW_DATA_DIR", tempDir)
-	defer os.Unsetenv("LITECLAW_DATA_DIR")
+	_ = os.Setenv("LITECLAW_DATA_DIR", tempDir)
+	defer func() { _ = os.Unsetenv("LITECLAW_DATA_DIR") }()
 
 	cmd := newSessionsListCommand()
 	b := bytes.NewBufferString("")

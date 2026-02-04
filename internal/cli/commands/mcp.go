@@ -119,14 +119,14 @@ func getMCPConfigPath() string {
 func installMCPServer(cmd *cobra.Command, pkg string, extraArgs []string) {
 	out := cmd.OutOrStdout()
 	configPath := getMCPConfigPath()
-	fmt.Fprintf(out, "📦 Installing '%s' into %s...\n", pkg, configPath)
+	_, _ = fmt.Fprintf(out, "📦 Installing '%s' into %s...\n", pkg, configPath)
 
 	// 1. Load existing config
 	var configData MCPConfigStructure
 	data, err := os.ReadFile(configPath)
 	if err == nil {
 		if err := json.Unmarshal(data, &configData); err != nil {
-			fmt.Fprintf(out, "⚠️ Warning: Failed to parse existing config: %v. Creating new.\n", err)
+			_, _ = fmt.Fprintf(out, "⚠️ Warning: Failed to parse existing config: %v. Creating new.\n", err)
 			configData.MCPServers = make(map[string]MCPServerDefinition)
 		}
 	} else {
@@ -154,15 +154,15 @@ func installMCPServer(cmd *cobra.Command, pkg string, extraArgs []string) {
 
 	// Check Registry for defaults
 	if meta, ok := KnownRegistry[pkg]; ok {
-		fmt.Fprintf(out, "ℹ️  Identified known server: %s\n", meta.Description)
+		_, _ = fmt.Fprintf(out, "ℹ️  Identified known server: %s\n", meta.Description)
 		if len(extraArgs) == 0 && len(meta.DefaultArgs) > 0 {
-			fmt.Fprintf(out, "   > Applying default args: %v\n", meta.DefaultArgs)
+			_, _ = fmt.Fprintf(out, "   > Applying default args: %v\n", meta.DefaultArgs)
 			finalArgs = append(finalArgs, meta.DefaultArgs...)
 		}
 		if len(meta.RequiredEnv) > 0 {
-			fmt.Fprintf(out, "⚠️  This server typically requires these env vars:\n")
+			_, _ = fmt.Fprintf(out, "⚠️  This server typically requires these env vars:\n")
 			for _, env := range meta.RequiredEnv {
-				fmt.Fprintf(out, "   - %s\n", env)
+				_, _ = fmt.Fprintf(out, "   - %s\n", env)
 				finalEnv[env] = "YOUR_" + env + "_HERE"
 			}
 		}
@@ -178,17 +178,17 @@ func installMCPServer(cmd *cobra.Command, pkg string, extraArgs []string) {
 	// 5. Save
 	newData, err := json.MarshalIndent(configData, "", "  ")
 	if err != nil {
-		fmt.Fprintf(out, "❌ Failed to marshal config: %v\n", err)
+		_, _ = fmt.Fprintf(out, "❌ Failed to marshal config: %v\n", err)
 		return
 	}
 
 	if err := os.WriteFile(configPath, newData, 0644); err != nil {
-		fmt.Fprintf(out, "❌ Failed to write config file: %v\n", err)
+		_, _ = fmt.Fprintf(out, "❌ Failed to write config file: %v\n", err)
 		return
 	}
 
-	fmt.Fprintf(out, "✅ Successfully installed '%s' as server ID '%s'.\n", pkg, serverName)
-	fmt.Fprintln(out, "🚀 Restart LiteClaw Gateway to apply changes: './liteclaw gateway start'")
+	_, _ = fmt.Fprintf(out, "✅ Successfully installed '%s' as server ID '%s'.\n", pkg, serverName)
+	_, _ = fmt.Fprintln(out, "🚀 Restart LiteClaw Gateway to apply changes: './liteclaw gateway start'")
 }
 
 func listMCPServers(cmd *cobra.Command) {
@@ -196,19 +196,19 @@ func listMCPServers(cmd *cobra.Command) {
 	configPath := getMCPConfigPath()
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Fprintf(out, "No mcp config found at %s\n", configPath)
+		_, _ = fmt.Fprintf(out, "No mcp config found at %s\n", configPath)
 		return
 	}
 
 	var configData MCPConfigStructure
 	if err := json.Unmarshal(data, &configData); err != nil {
-		fmt.Fprintf(out, "Failed to parse config: %v\n", err)
+		_, _ = fmt.Fprintf(out, "Failed to parse config: %v\n", err)
 		return
 	}
 
-	fmt.Fprintf(out, "📂 MCP Servers listed in %s:\n", configPath)
+	_, _ = fmt.Fprintf(out, "📂 MCP Servers listed in %s:\n", configPath)
 	if len(configData.MCPServers) == 0 {
-		fmt.Fprintln(out, "   (No servers configured)")
+		_, _ = fmt.Fprintln(out, "   (No servers configured)")
 		return
 	}
 
@@ -220,16 +220,16 @@ func listMCPServers(cmd *cobra.Command) {
 
 	for _, name := range sortedNames {
 		def := configData.MCPServers[name]
-		fmt.Fprintf(out, "- %s\n", name)
-		fmt.Fprintf(out, "  Command: %s %v\n", def.Command, def.Args)
+		_, _ = fmt.Fprintf(out, "- %s\n", name)
+		_, _ = fmt.Fprintf(out, "  Command: %s %v\n", def.Command, def.Args)
 		if len(def.Env) > 0 {
 			var envKeys []string
 			for ek := range def.Env {
 				envKeys = append(envKeys, ek)
 			}
 			sort.Strings(envKeys)
-			fmt.Fprintf(out, "  Env: %v\n", envKeys)
+			_, _ = fmt.Fprintf(out, "  Env: %v\n", envKeys)
 		}
-		fmt.Fprintln(out)
+		_, _ = fmt.Fprintln(out)
 	}
 }

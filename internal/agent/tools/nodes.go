@@ -197,7 +197,7 @@ func (t *CanvasTool) invokeNode(ctx context.Context, nodeID, command string, cmd
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -531,7 +531,7 @@ func (t *NodesTool) callGateway(ctx context.Context, method string, payload inte
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

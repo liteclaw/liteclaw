@@ -51,7 +51,7 @@ func (m *RelayManager) RegisterConnection(profile string, conn *websocket.Conn) 
 
 	// Close old connection if any
 	if old, ok := m.connections[profile]; ok {
-		old.Close()
+		_ = old.Close()
 	}
 	m.connections[profile] = conn
 }
@@ -276,7 +276,8 @@ func (m *RelayManager) handleEvent(profile string, evt map[string]interface{}) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if method == "Target.attachedToTarget" {
+	switch method {
+	case "Target.attachedToTarget":
 		sessionId, _ := params["sessionId"].(string)
 		targetInfo, _ := params["targetInfo"].(map[string]interface{})
 		if sessionId != "" && targetInfo != nil {
@@ -286,7 +287,7 @@ func (m *RelayManager) handleEvent(profile string, evt map[string]interface{}) {
 			}
 			m.tabs[profile][sessionId] = targetInfo
 		}
-	} else if method == "Target.targetInfoChanged" {
+	case "Target.targetInfoChanged":
 		targetInfo, _ := params["targetInfo"].(map[string]interface{})
 		targetId, _ := targetInfo["targetId"].(string)
 		if targetId != "" && targetInfo != nil {
@@ -299,7 +300,7 @@ func (m *RelayManager) handleEvent(profile string, evt map[string]interface{}) {
 				}
 			}
 		}
-	} else if method == "Target.detachedFromTarget" {
+	case "Target.detachedFromTarget":
 		sessionId, _ := params["sessionId"].(string)
 		if sessionId != "" {
 			if m.tabs[profile] != nil {

@@ -152,7 +152,7 @@ func (t *WriteTool) Execute(ctx context.Context, params map[string]interface{}) 
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	n, err := f.WriteString(content)
 	if err != nil {

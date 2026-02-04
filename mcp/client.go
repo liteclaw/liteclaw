@@ -105,7 +105,7 @@ func (c *Client) Stop() error {
 		c.cancel()
 	}
 	if c.stdin != nil {
-		c.stdin.Close()
+		_ = c.stdin.Close()
 	}
 	if c.cmd != nil {
 		return c.cmd.Wait()

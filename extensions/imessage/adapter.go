@@ -266,7 +266,7 @@ func (a *Adapter) Stop(ctx context.Context) error {
 
 	// Close stdin to signal process to exit
 	if a.stdin != nil {
-		a.stdin.Close()
+		_ = a.stdin.Close()
 		a.stdin = nil
 	}
 
@@ -477,9 +477,10 @@ func (a *Adapter) handleLine(line string) {
 	}
 
 	// This is a notification
-	if resp.Method == "message" {
+	switch resp.Method {
+	case "message":
 		a.handleMessageNotification(resp.Params)
-	} else if resp.Method == "error" {
+	case "error":
 		a.Logger().Error().RawJSON("params", resp.Params).Msg("imsg rpc error notification")
 	}
 }

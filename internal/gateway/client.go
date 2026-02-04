@@ -298,7 +298,7 @@ func (c *Client) Connect(ctx context.Context) error {
 		var err error
 		c.identity, err = GenerateDeviceIdentity()
 		if err != nil {
-			c.Close()
+			_ = c.Close()
 			return fmt.Errorf("failed to generate device identity: %w", err)
 		}
 	}
@@ -332,7 +332,7 @@ func (c *Client) Connect(ctx context.Context) error {
 
 	result, err := c.Request(ctx, "connect", params)
 	if err != nil {
-		c.Close()
+		_ = c.Close()
 		if c.opts.OnConnectError != nil {
 			c.opts.OnConnectError(err)
 		}
@@ -343,7 +343,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	data, _ := json.Marshal(result)
 	var hello HelloOk
 	if err := json.Unmarshal(data, &hello); err != nil {
-		c.Close()
+		_ = c.Close()
 		return fmt.Errorf("failed to parse hello: %w", err)
 	}
 
@@ -379,7 +379,7 @@ func (c *Client) Close() error {
 	c.mu.Unlock()
 
 	if ws != nil {
-		ws.Close()
+		_ = ws.Close()
 	}
 
 	c.wg.Wait()

@@ -30,7 +30,7 @@ func (s *Server) handleWebSocket(c echo.Context) error {
 		s.logger.Error().Err(err).Msg("WebSocket upgrade failed")
 		return err
 	}
-	defer ws.Close()
+	defer func() { _ = ws.Close() }()
 
 	s.logger.Info().Msg("WebSocket client connected")
 

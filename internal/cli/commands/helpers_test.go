@@ -20,7 +20,7 @@ func CaptureStdout(fn func()) string {
 	}()
 
 	fn()
-	w.Close()
+	_ = w.Close()
 	os.Stdout = old
 	return <-outChan
 }

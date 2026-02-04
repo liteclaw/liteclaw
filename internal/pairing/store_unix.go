@@ -20,7 +20,7 @@ func withFileLock(path string, fn func() error) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// Exclusive lock
 	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {

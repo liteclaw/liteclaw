@@ -13,8 +13,8 @@ func TestMCPCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	configPath := filepath.Join(tempDir, "liteclaw.extras.json")
 
-	os.Setenv("LITECLAW_MCP_CONFIG_PATH", configPath)
-	defer os.Unsetenv("LITECLAW_MCP_CONFIG_PATH")
+	_ = os.Setenv("LITECLAW_MCP_CONFIG_PATH", configPath)
+	defer func() { _ = os.Unsetenv("LITECLAW_MCP_CONFIG_PATH") }()
 
 	// 1. Test 'mcp install'
 	installCmd := newMCPInstallCommand()

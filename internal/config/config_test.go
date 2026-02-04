@@ -10,8 +10,8 @@ func TestConfigDefaults(t *testing.T) {
 	// Create temp home for isolation
 	tempDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", oldHome)
+	_ = os.Setenv("HOME", tempDir)
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
 
 	cfg, err := Load()
 	if err != nil {
@@ -32,8 +32,8 @@ func TestConfigDefaults(t *testing.T) {
 
 func TestConfigPath(t *testing.T) {
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", "/test/home")
-	defer os.Setenv("HOME", oldHome)
+	_ = os.Setenv("HOME", "/test/home")
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
 
 	path := ConfigPath()
 	expected := "/test/home/.liteclaw/liteclaw.json"
@@ -45,8 +45,8 @@ func TestConfigPath(t *testing.T) {
 
 func TestConfigDir(t *testing.T) {
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", "/test/home")
-	defer os.Setenv("HOME", oldHome)
+	_ = os.Setenv("HOME", "/test/home")
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
 
 	dir := ConfigDir()
 	expected := "/test/home/.liteclaw"
@@ -82,8 +82,8 @@ func TestLoadConfigFromFile(t *testing.T) {
 
 	// Set HOME to temp dir
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", oldHome)
+	_ = os.Setenv("HOME", tempDir)
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
 
 	// Load config
 	cfg, err := Load()
@@ -109,8 +109,8 @@ func TestLoadConfigFromFile(t *testing.T) {
 }
 
 func TestExpandEnvVars(t *testing.T) {
-	os.Setenv("TEST_TOKEN", "secret-token-value")
-	defer os.Unsetenv("TEST_TOKEN")
+	_ = os.Setenv("TEST_TOKEN", "secret-token-value")
+	defer func() { _ = os.Unsetenv("TEST_TOKEN") }()
 
 	cfg := &Config{
 		Channels: ChannelsConfig{
@@ -131,8 +131,8 @@ func TestSaveConfig(t *testing.T) {
 	// Create temp directory
 	tempDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", oldHome)
+	_ = os.Setenv("HOME", tempDir)
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
 
 	cfg := &Config{
 		Gateway: GatewayConfig{

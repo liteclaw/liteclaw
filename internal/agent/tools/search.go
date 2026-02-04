@@ -156,7 +156,7 @@ func (t *GrepTool) searchBuiltin(ctx context.Context, pattern, path string, igno
 		if err != nil {
 			return nil
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 
 		scanner := bufio.NewScanner(f)
 		lineNum := 0

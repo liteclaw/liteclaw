@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -197,142 +198,138 @@ func (s *Server) Start() error {
 				}
 			}()
 		}
-	}
 
-	// Initialize iMessage Adapter if configured
-	if cfg.Channels.IMessage.Enabled {
-		imCfg := &imessage.Config{
-			Enabled: true,
-			DBPath:  cfg.Channels.IMessage.DBPath,
-		}
-		imAdapter := imessage.New(imCfg, s.logger)
-
-		// Set Handler (reuse same handler)
-		handler := NewChannelHandler(s)
-		imAdapter.SetHandler(handler)
-
-		// Register and Start
-		s.adapters["imessage"] = imAdapter
-
-		// Start in background
-		go func() {
-			if err := imAdapter.Start(context.Background()); err != nil {
-				s.logger.Error().Err(err).Msg("Failed to start iMessage adapter")
+		// Initialize iMessage Adapter if configured
+		if cfg.Channels.IMessage.Enabled {
+			imCfg := &imessage.Config{
+				Enabled: true,
+				DBPath:  cfg.Channels.IMessage.DBPath,
 			}
-		}()
-	}
+			imAdapter := imessage.New(imCfg, s.logger)
 
-	// Initialize QQ Adapter if configured
-	if cfg.Channels.QQ.Enabled {
-		qqCfg := &qq.Config{
-			AppID:     cfg.Channels.QQ.AppID,
-			AppSecret: cfg.Channels.QQ.AppSecret,
-			Sandbox:   cfg.Channels.QQ.Sandbox,
-		}
-		qqAdapter := qq.New(qqCfg, s.logger)
+			// Set Handler (reuse same handler)
+			handler := NewChannelHandler(s)
+			imAdapter.SetHandler(handler)
 
-		// Handler & Register
-		handler := NewChannelHandler(s)
-		qqAdapter.SetHandler(handler)
-		s.adapters["qq"] = qqAdapter
+			// Register and Start
+			s.adapters["imessage"] = imAdapter
 
-		go func() {
-			if err := qqAdapter.Start(context.Background()); err != nil {
-				s.logger.Error().Err(err).Msg("Failed to start QQ adapter")
-			}
-		}()
-	}
-
-	// Initialize Feishu Adapter if configured
-	if cfg.Channels.Feishu.Enabled {
-		fsCfg := &feishu.Config{
-			AppID:     cfg.Channels.Feishu.AppID,
-			AppSecret: cfg.Channels.Feishu.AppSecret,
-		}
-		fsAdapter := feishu.New(fsCfg, s.logger)
-
-		// Handler & Register
-		handler := NewChannelHandler(s)
-		fsAdapter.SetHandler(handler)
-		s.adapters["feishu"] = fsAdapter
-
-		go func() {
-			if err := fsAdapter.Start(context.Background()); err != nil {
-				s.logger.Error().Err(err).Msg("Failed to start Feishu adapter")
-			}
-		}()
-	}
-
-	// Initialize DingTalk Adapter if configured
-	if cfg.Channels.DingTalk.Enabled {
-		dtCfg := &dingtalk.Config{
-			AppKey:    cfg.Channels.DingTalk.AppKey,
-			AppSecret: cfg.Channels.DingTalk.AppSecret,
-		}
-		dtAdapter := dingtalk.New(dtCfg, s.logger)
-
-		// Handler & Register
-		handler := NewChannelHandler(s)
-		dtAdapter.SetHandler(handler)
-		s.adapters["dingtalk"] = dtAdapter
-
-		go func() {
-			if err := dtAdapter.Start(context.Background()); err != nil {
-				s.logger.Error().Err(err).Msg("Failed to start DingTalk adapter")
-			}
-		}()
-	}
-
-	// Initialize WeCom Adapter if configured
-	if cfg.Channels.WeCom.Enabled {
-		wcCfg := &wecom.Config{
-			CorpID:         cfg.Channels.WeCom.CorpID,
-			AgentID:        cfg.Channels.WeCom.AgentID,
-			AgentSecret:    cfg.Channels.WeCom.AgentSecret,
-			Token:          cfg.Channels.WeCom.Token,
-			EncodingAESKey: cfg.Channels.WeCom.EncodingAESKey,
-			Port:           cfg.Channels.WeCom.Port,
-			BotID:          cfg.Channels.WeCom.BotID,
-			ShowThinking:   cfg.Channels.WeCom.ShowThinking,
-		}
-		wcAdapter := wecom.New(wcCfg, s.logger)
-
-		// Set Handler
-		handler := NewChannelHandler(s)
-		wcAdapter.SetHandler(handler)
-		s.adapters["wecom"] = wcAdapter
-
-		// Start WeCom Adapter in background
-		go func() {
-			if err := wcAdapter.Start(context.Background()); err != nil {
-				s.logger.Error().Err(err).Msg("Failed to start WeCom adapter")
-			}
-		}()
-
-		// Create dedicated server for WeCom if port is specified
-		if wcCfg.Port > 0 {
-			wecomServer := echo.New()
-			wecomServer.HideBanner = true
-			wecomServer.HidePort = true
-
-			// Register Handlers
-			// WeCom adapter's HandleWebhook method is compatible with echo.HandlerFunc
-			wecomServer.Any("/wecom", wcAdapter.HandleWebhook)
-
-			// Start dedicated server on 0.0.0.0
+			// Start in background
 			go func() {
-				addr := fmt.Sprintf("0.0.0.0:%d", wcCfg.Port)
-				s.logger.Info().Str("addr", addr).Msg("Starting WeCom public server")
-				if err := wecomServer.Start(addr); err != nil && err != http.ErrServerClosed {
-					s.logger.Error().Err(err).Msg("WeCom server failed")
+				if err := imAdapter.Start(context.Background()); err != nil {
+					s.logger.Error().Err(err).Msg("Failed to start iMessage adapter")
+				}
+			}()
+		}
+
+		// Initialize QQ Adapter if configured
+		if cfg.Channels.QQ.Enabled {
+			qqCfg := &qq.Config{
+				AppID:     cfg.Channels.QQ.AppID,
+				AppSecret: cfg.Channels.QQ.AppSecret,
+				Sandbox:   cfg.Channels.QQ.Sandbox,
+			}
+			qqAdapter := qq.New(qqCfg, s.logger)
+
+			// Handler & Register
+			handler := NewChannelHandler(s)
+			qqAdapter.SetHandler(handler)
+			s.adapters["qq"] = qqAdapter
+
+			go func() {
+				if err := qqAdapter.Start(context.Background()); err != nil {
+					s.logger.Error().Err(err).Msg("Failed to start QQ adapter")
+				}
+			}()
+		}
+
+		// Initialize Feishu Adapter if configured
+		if cfg.Channels.Feishu.Enabled {
+			fsCfg := &feishu.Config{
+				AppID:     cfg.Channels.Feishu.AppID,
+				AppSecret: cfg.Channels.Feishu.AppSecret,
+			}
+			fsAdapter := feishu.New(fsCfg, s.logger)
+
+			// Handler & Register
+			handler := NewChannelHandler(s)
+			fsAdapter.SetHandler(handler)
+			s.adapters["feishu"] = fsAdapter
+
+			go func() {
+				if err := fsAdapter.Start(context.Background()); err != nil {
+					s.logger.Error().Err(err).Msg("Failed to start Feishu adapter")
+				}
+			}()
+		}
+
+		// Initialize DingTalk Adapter if configured
+		if cfg.Channels.DingTalk.Enabled {
+			dtCfg := &dingtalk.Config{
+				AppKey:    cfg.Channels.DingTalk.AppKey,
+				AppSecret: cfg.Channels.DingTalk.AppSecret,
+			}
+			dtAdapter := dingtalk.New(dtCfg, s.logger)
+
+			// Handler & Register
+			handler := NewChannelHandler(s)
+			dtAdapter.SetHandler(handler)
+			s.adapters["dingtalk"] = dtAdapter
+
+			go func() {
+				if err := dtAdapter.Start(context.Background()); err != nil {
+					s.logger.Error().Err(err).Msg("Failed to start DingTalk adapter")
+				}
+			}()
+		}
+
+		// Initialize WeCom Adapter if configured
+		if cfg.Channels.WeCom.Enabled {
+			wcCfg := &wecom.Config{
+				Token:          cfg.Channels.WeCom.Token,
+				EncodingAESKey: cfg.Channels.WeCom.EncodingAESKey,
+				Port:           cfg.Channels.WeCom.Port,
+				BotID:          cfg.Channels.WeCom.BotID,
+			}
+			wcAdapter := wecom.New(wcCfg, s.logger)
+
+			// Set Handler
+			handler := NewChannelHandler(s)
+			wcAdapter.SetHandler(handler)
+			s.adapters["wecom"] = wcAdapter
+
+			// Start WeCom Adapter in background
+			go func() {
+				if err := wcAdapter.Start(context.Background()); err != nil {
+					s.logger.Error().Err(err).Msg("Failed to start WeCom adapter")
 				}
 			}()
 
-			// Add to shutdown list
-			s.shutdownServers = append(s.shutdownServers, wecomServer)
-		} else {
-			// Fallback to main server if no port specified (legacy behavior)
-			s.echo.Any("/wecom", wcAdapter.HandleWebhook)
+			// Create dedicated server for WeCom if port is specified
+			if wcCfg.Port > 0 {
+				wecomServer := echo.New()
+				wecomServer.HideBanner = true
+				wecomServer.HidePort = true
+
+				// Register Handlers
+				// WeCom adapter's HandleWebhook method is compatible with echo.HandlerFunc
+				wecomServer.Any("/wecom", wcAdapter.HandleWebhook)
+
+				// Start dedicated server on 0.0.0.0 (WeCom callbacks require public access)
+				go func() {
+					addr := fmt.Sprintf("0.0.0.0:%d", wcCfg.Port)
+					s.logger.Info().Str("addr", addr).Msg("Starting WeCom callback server")
+					if err := wecomServer.Start(addr); err != nil && err != http.ErrServerClosed {
+						s.logger.Error().Err(err).Msg("WeCom server failed")
+					}
+				}()
+
+				// Add to shutdown list
+				s.shutdownServers = append(s.shutdownServers, wecomServer)
+			} else {
+				// Fallback to main server if no port specified (legacy behavior)
+				s.echo.Any("/wecom", wcAdapter.HandleWebhook)
+			}
 		}
 	}
 
@@ -554,6 +551,31 @@ func (s *Server) processChannelMessage(ctx context.Context, msg *channels.Incomi
 	// Use SenderID as session key for simple persistence/context
 	sessionKey := fmt.Sprintf("%s:%s", msg.ChannelType, msg.SenderID)
 
+	// Load persisted history into agent session (restore context after gateway restart)
+	// Optimization: Check if agent already has session in memory to avoid parsing disk history on every message
+	if !s.agentService.HasSession(sessionKey) {
+		if history, err := s.sessionManager.GetHistory(sessionKey); err == nil && len(history) > 0 {
+			// Convert gateway.Message to agent.Message format
+			agentHistory := make([]agent.Message, 0, len(history))
+			for _, m := range history {
+				// Extract text from Content array
+				text := ""
+				if len(m.Content) > 0 {
+					if t, ok := m.Content[0]["text"].(string); ok {
+						text = t
+					}
+				}
+				if text != "" {
+					agentHistory = append(agentHistory, agent.Message{
+						Role:    m.Role,
+						Content: text,
+					})
+				}
+			}
+			s.agentService.LoadSessionHistory(sessionKey, agentHistory)
+		}
+	}
+
 	// Persist User Message
 	if err := s.sessionManager.AddMessage(sessionKey, "user", msg.Text); err != nil {
 		s.logger.Warn().Err(err).Str("session", sessionKey).Msg("Failed to persist user message")
@@ -574,6 +596,13 @@ func (s *Server) processChannelMessage(ctx context.Context, msg *channels.Incomi
 	}
 
 	respStr := fullResponse.String()
+
+	// Clean up response: remove <think>...</think> blocks and trim whitespace
+	// This is done here so the clean response is logged and sent
+	thinkRegex := regexp.MustCompile(`(?s)<think>.*?</think>`)
+	respStr = thinkRegex.ReplaceAllString(respStr, "")
+	respStr = strings.TrimSpace(respStr)
+
 	s.logger.Info().Str("response", respStr).Msg("Full Agent Response")
 
 	// Persist Assistant Response
@@ -692,7 +721,7 @@ func (s *Server) setupRoutes() {
 		api.DELETE("/cron/jobs/:id", s.handleCronRemove)
 		api.POST("/cron/jobs/:id/update", s.handleCronUpdate)
 		api.POST("/cron/jobs/:id/run", s.handleCronRun)
-		s.echo.GET("/api/cron/jobs/:id/history", s.handleCronHistory) // Keep consistent with group if possible or explicit
+		api.GET("/cron/jobs/:id/history", s.handleCronHistory)
 
 		// Gateway control
 		api.POST("/gateway/restart", s.handleRestart)

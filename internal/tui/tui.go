@@ -108,7 +108,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			if m.conn != nil {
-				m.conn.Close()
+				_ = m.conn.Close()
 			}
 			return m, tea.Quit
 		case tea.KeyEnter:

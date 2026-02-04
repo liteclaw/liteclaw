@@ -116,7 +116,7 @@ func (a *Adapter) Probe(ctx context.Context) (*channels.ProbeResult, error) {
 // Send sends a message via Google Chat.
 func (a *Adapter) Send(ctx context.Context, req *channels.SendRequest) (*channels.SendResult, error) {
 	if a.client == nil {
-		return nil, fmt.Errorf("Google Chat client not initialized")
+		return nil, fmt.Errorf("google chat client not initialized")
 	}
 
 	to := req.To.ChatID
